@@ -6,13 +6,5 @@
     "completed": false,
     "createdAt": 1718340000000,
     "order": 0
-  },
-  {
-    "id": "t1",
-    "text": "hello from curl",
-    "priority": "high",
-    "completed": true,
-    "createdAt": 1718340000000,
-    "order": 1
   }
 ]
