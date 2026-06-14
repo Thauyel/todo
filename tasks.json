@@ -1,23 +1,74 @@
 [
   {
-    "id": "mqda3hvo4gqmvc",
-    "text": "low importance",
-    "priority": "low",
-    "completed": false,
-    "createdAt": 1781410970436
-  },
-  {
-    "id": "mqda3c8vk01bqq",
-    "text": "no",
-    "priority": "high",
-    "completed": false,
-    "createdAt": 1781410963135
-  },
-  {
-    "id": "mqda377w3yvrzr",
-    "text": "buy books",
+    "id": "brownie-01",
+    "text": "200 g dark chocolate (70%)",
     "priority": "medium",
     "completed": false,
-    "createdAt": 1781410956620
+    "createdAt": 1718340000000,
+    "order": 0
+  },
+  {
+    "id": "brownie-02",
+    "text": "180 g unsalted butter",
+    "priority": "medium",
+    "completed": false,
+    "createdAt": 1718340000001,
+    "order": 1
+  },
+  {
+    "id": "brownie-03",
+    "text": "3 large eggs (room temp)",
+    "priority": "medium",
+    "completed": false,
+    "createdAt": 1718340000002,
+    "order": 2
+  },
+  {
+    "id": "brownie-04",
+    "text": "200 g granulated sugar",
+    "priority": "medium",
+    "completed": false,
+    "createdAt": 1718340000003,
+    "order": 3
+  },
+  {
+    "id": "brownie-05",
+    "text": "100 g all-purpose flour",
+    "priority": "medium",
+    "completed": false,
+    "createdAt": 1718340000004,
+    "order": 4
+  },
+  {
+    "id": "brownie-06",
+    "text": "30 g cocoa powder",
+    "priority": "medium",
+    "completed": false,
+    "createdAt": 1718340000005,
+    "order": 5
+  },
+  {
+    "id": "brownie-07",
+    "text": "1 tsp vanilla extract",
+    "priority": "low",
+    "completed": false,
+    "createdAt": 1718340000006,
+    "order": 6
+  },
+  {
+    "id": "brownie-08",
+    "text": "1/2 tsp fine salt",
+    "priority": "low",
+    "completed": false,
+    "createdAt": 1718340000007,
+    "order": 7
+  },
+  {
+    "id": "brownie-09",
+    "text": "100 g chocolate chips or chunks (optional)",
+    "priority": "low",
+    "completed": false,
+    "createdAt": 1718340000008,
+    "order": 8
   }
 ]
