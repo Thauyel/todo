@@ -35,7 +35,7 @@
     "id": "brownie-05",
     "text": "100 g all-purpose flour",
     "priority": "medium",
-    "completed": true,
+    "completed": false,
     "createdAt": 1718340000004,
     "order": 4
   },
@@ -43,7 +43,7 @@
     "id": "brownie-06",
     "text": "30 g cocoa powder",
     "priority": "medium",
-    "completed": true,
+    "completed": false,
     "createdAt": 1718340000005,
     "order": 5
   },
@@ -51,7 +51,7 @@
     "id": "brownie-07",
     "text": "1 tsp vanilla extract",
     "priority": "low",
-    "completed": true,
+    "completed": false,
     "createdAt": 1718340000006,
     "order": 6
   },
