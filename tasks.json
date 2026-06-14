@@ -51,7 +51,7 @@
     "id": "brownie-07",
     "text": "1 tsp vanilla extract",
     "priority": "low",
-    "completed": false,
+    "completed": true,
     "createdAt": 1718340000006,
     "order": 6
   },
