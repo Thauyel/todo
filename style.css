@@ -1,0 +1,649 @@
+/* ===================================================
+   Design Tokens
+   =================================================== */
+:root {
+  /* Palette – deep space dark mode */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-card: #16161f;
+  --bg-card-hover: #1c1c28;
+  --bg-input: #1a1a26;
+
+  --text-primary: #e8e8ed;
+  --text-secondary: #8b8b9e;
+  --text-muted: #55556a;
+
+  --accent: #7c5cfc;
+  --accent-light: #9b7eff;
+  --accent-glow: rgba(124, 92, 252, 0.25);
+
+  --priority-high: #ff5c72;
+  --priority-medium: #ffb84d;
+  --priority-low: #4dd4ac;
+
+  --border: rgba(255, 255, 255, 0.06);
+  --border-focus: rgba(124, 92, 252, 0.5);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-glow: 0 0 40px var(--accent-glow);
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-med: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===================================================
+   Reset & Base
+   =================================================== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  border: none;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
+input, select {
+  border: none;
+  outline: none;
+  font-family: inherit;
+  background: none;
+  color: inherit;
+}
+
+/* ===================================================
+   Ambient Background
+   =================================================== */
+.bg-blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+  animation: blobFloat 20s ease-in-out infinite alternate;
+}
+
+.bg-blob--1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #7c5cfc 0%, transparent 70%);
+  top: -120px;
+  left: -100px;
+}
+
+.bg-blob--2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #ff5c72 0%, transparent 70%);
+  bottom: -80px;
+  right: -60px;
+  animation-delay: -7s;
+}
+
+.bg-blob--3 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, #4dd4ac 0%, transparent 70%);
+  top: 50%;
+  left: 60%;
+  animation-delay: -14s;
+}
+
+@keyframes blobFloat {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(30px, -40px) scale(1.05); }
+  66%  { transform: translate(-20px, 20px) scale(0.95); }
+  100% { transform: translate(10px, -10px) scale(1.02); }
+}
+
+/* ===================================================
+   App Layout
+   =================================================== */
+.app-wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 48px 20px 32px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===================================================
+   Header
+   =================================================== */
+.app-header {
+  margin-bottom: 36px;
+  animation: fadeSlideDown 0.6s var(--transition-med) both;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.logo {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.logo-dot {
+  color: var(--accent);
+}
+
+.date-display {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+}
+
+.greeting {
+  font-size: 1.05rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+}
+
+/* ===================================================
+   Add Task Form
+   =================================================== */
+.add-task-form {
+  margin-bottom: 24px;
+  animation: fadeSlideDown 0.6s var(--transition-med) 0.1s both;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 6px 8px 6px 16px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input-wrapper:focus-within {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-glow);
+}
+
+.input-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  display: flex;
+}
+
+.task-input {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 400;
+  padding: 10px 4px;
+  min-width: 0;
+}
+
+.task-input::placeholder {
+  color: var(--text-muted);
+}
+
+.priority-select {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.priority-select:hover {
+  background: var(--bg-card-hover);
+}
+
+.priority-select option {
+  background: var(--bg-card);
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.add-btn:hover {
+  background: var(--accent-light);
+  transform: scale(1.05);
+}
+
+.add-btn:active {
+  transform: scale(0.95);
+}
+
+/* ===================================================
+   Filters
+   =================================================== */
+.filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  animation: fadeSlideDown 0.6s var(--transition-med) 0.2s both;
+}
+
+.filter-btn {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.filter-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.filter-btn.active {
+  color: var(--accent-light);
+  background: rgba(124, 92, 252, 0.1);
+  border-color: rgba(124, 92, 252, 0.25);
+}
+
+/* ===================================================
+   Task Stats
+   =================================================== */
+.task-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding: 0 4px;
+  animation: fadeSlideDown 0.6s var(--transition-med) 0.25s both;
+}
+
+.clear-completed-btn {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+  display: none;
+}
+
+.clear-completed-btn:hover {
+  color: var(--priority-high);
+}
+
+.clear-completed-btn.visible {
+  display: inline;
+}
+
+/* ===================================================
+   Task List
+   =================================================== */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+/* Individual Task */
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: grab;
+  transition: transform var(--transition-fast),
+              background var(--transition-fast),
+              box-shadow var(--transition-fast),
+              opacity var(--transition-med);
+  animation: taskSlideIn 0.35s var(--transition-med) both;
+}
+
+.task-item:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.task-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+.task-item.drag-over {
+  border-color: var(--accent);
+  background: rgba(124, 92, 252, 0.05);
+}
+
+.task-item.removing {
+  animation: taskSlideOut 0.3s var(--transition-med) forwards;
+}
+
+.task-item.completed .task-text {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Priority indicator */
+.priority-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.priority-dot.high {
+  background: var(--priority-high);
+  box-shadow: 0 0 8px rgba(255, 92, 114, 0.4);
+}
+
+.priority-dot.medium {
+  background: var(--priority-medium);
+  box-shadow: 0 0 8px rgba(255, 184, 77, 0.3);
+}
+
+.priority-dot.low {
+  background: var(--priority-low);
+  box-shadow: 0 0 8px rgba(77, 212, 172, 0.3);
+}
+
+/* Checkbox */
+.task-checkbox {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.task-checkbox input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.checkmark {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  border: 2px solid var(--text-muted);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkmark svg {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all var(--transition-fast);
+  color: #fff;
+}
+
+.task-checkbox input:checked + .checkmark {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.task-checkbox input:checked + .checkmark svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.task-checkbox input:hover + .checkmark {
+  border-color: var(--accent-light);
+}
+
+/* Task text */
+.task-text {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 400;
+  line-height: 1.4;
+  min-width: 0;
+  transition: color var(--transition-med);
+}
+
+/* Edit input */
+.task-edit-input {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 400;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  border: 1px solid var(--border-focus);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+/* Task timestamp */
+.task-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Delete button */
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  opacity: 0;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.task-item:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  color: var(--priority-high);
+  background: rgba(255, 92, 114, 0.1);
+}
+
+/* ===================================================
+   Empty State
+   =================================================== */
+.empty-state {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  animation: fadeIn 0.5s ease both;
+}
+
+.empty-state.visible {
+  display: flex;
+}
+
+.empty-icon {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+
+.empty-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.empty-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ===================================================
+   Footer
+   =================================================== */
+.app-footer {
+  text-align: center;
+  padding: 24px 0 8px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: auto;
+}
+
+/* ===================================================
+   Animations
+   =================================================== */
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes taskSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes taskSlideOut {
+  to {
+    opacity: 0;
+    transform: translateX(16px) scale(0.95);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes checkPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.task-checkbox input:checked + .checkmark {
+  animation: checkPop 0.3s ease;
+}
+
+/* ===================================================
+   Responsive
+   =================================================== */
+@media (max-width: 480px) {
+  .app-wrapper {
+    padding: 28px 14px 20px;
+  }
+
+  .logo {
+    font-size: 1.4rem;
+  }
+
+  .greeting {
+    font-size: 0.92rem;
+  }
+
+  .task-time {
+    display: none;
+  }
+
+  .bg-blob {
+    opacity: 0.2;
+  }
+}
+
+/* ===================================================
+   Scrollbar
+   =================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
