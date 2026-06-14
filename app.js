@@ -1,56 +1,53 @@
 /* ===================================================
-   Todo App – Application Logic
+   Todo App — flat, in-place updates
    =================================================== */
 
 (function () {
   'use strict';
 
-  // ─── Constants ──────────────────────────────────
   const STORAGE_KEY = 'todo_app_tasks';
 
-  // ─── DOM References ─────────────────────────────
-  const taskForm = document.getElementById('add-task-form');
-  const taskInput = document.getElementById('task-input');
-  const prioritySelect = document.getElementById('priority-select');
-  const taskList = document.getElementById('task-list');
-  const emptyState = document.getElementById('empty-state');
-  const statsText = document.getElementById('stats-text');
+  // ─── DOM ─────────────────────────────────────
+  const taskForm        = document.getElementById('add-task-form');
+  const taskInput       = document.getElementById('task-input');
+  const prioritySelect  = document.getElementById('priority-select');
+  const addBtn          = document.getElementById('add-btn');
+  const taskList        = document.getElementById('task-list');
+  const emptyState      = document.getElementById('empty-state');
+  const statsText       = document.getElementById('stats-text');
   const clearCompletedBtn = document.getElementById('clear-completed-btn');
-  const dateDisplay = document.getElementById('date-display');
-  const greetingEl = document.getElementById('greeting');
-  const filterBtns = document.querySelectorAll('.filter-btn');
+  const dateDisplay     = document.getElementById('date-display');
+  const greetingEl      = document.getElementById('greeting');
+  const filterBtns      = document.querySelectorAll('.filter-btn');
+  const emptyTitleEl    = emptyState.querySelector('.empty-title');
+  const emptySubtitleEl = emptyState.querySelector('.empty-subtitle');
 
-  // ─── State ──────────────────────────────────────
+  // ─── State ───────────────────────────────────
   let tasks = loadTasks();
   let currentFilter = 'all';
   let draggedId = null;
 
-  // ─── Initialise ─────────────────────────────────
+  // ─── Init ────────────────────────────────────
   function init() {
     setDateAndGreeting();
     bindEvents();
-    render();
-    // Pull latest from server in the background; if it's the same, no re-render.
+    buildList();
+    renderStats();
+    updateEmptyState();
+    // Background sync from server. If something changed, rebuild.
     syncFromServer().catch(() => {});
   }
 
-  // ─── Persistence ────────────────────────────────
-  // localStorage is a local cache (works offline, instant render).
-  // The server is the source of truth — every change syncs up.
+  // ─── Persistence ─────────────────────────────
   function loadTasks() {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   }
 
   function saveTasks() {
-    // 1. local cache (synchronous, instant)
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); } catch {}
-
-    // 2. server (fire-and-forget; server auto-commits to git)
     fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -64,50 +61,55 @@
       if (!res.ok) return;
       const remote = await res.json();
       const local = loadTasks();
-      // Only re-render if something actually changed
       if (JSON.stringify(remote) !== JSON.stringify(local)) {
         tasks = remote;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); } catch {}
-        render();
+        buildList();
+        renderStats();
+        updateEmptyState();
       }
     } catch (err) {
       console.warn('syncFromServer failed:', err);
     }
   }
 
-  // ─── Date & Greeting ────────────────────────────
+  // ─── Header ──────────────────────────────────
   function setDateAndGreeting() {
     const now = new Date();
-    const opts = { weekday: 'long', month: 'long', day: 'numeric' };
-    dateDisplay.textContent = now.toLocaleDateString('en-US', opts);
-
+    dateDisplay.textContent = now.toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric',
+    });
     const hour = now.getHours();
-    let greeting;
-    if (hour < 12) greeting = 'Good morning ☀️';
-    else if (hour < 17) greeting = 'Good afternoon 🌤️';
-    else if (hour < 21) greeting = 'Good evening 🌙';
-    else greeting = 'Night owl mode 🦉';
-
-    greetingEl.textContent = `${greeting} — what's on your plate today?`;
+    let g;
+    if      (hour < 12) g = 'Good morning';
+    else if (hour < 17) g = 'Good afternoon';
+    else if (hour < 21) g = 'Good evening';
+    else                g = 'Night owl';
+    greetingEl.textContent = `${g} — what's on your plate today?`;
   }
 
-  // ─── Events ─────────────────────────────────────
+  // ─── Events ──────────────────────────────────
   function bindEvents() {
     taskForm.addEventListener('submit', handleAddTask);
+    taskInput.addEventListener('input', () => {
+      addBtn.disabled = taskInput.value.trim().length === 0;
+    });
 
     filterBtns.forEach(btn => {
       btn.addEventListener('click', () => {
+        if (btn.classList.contains('active')) return;
         filterBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentFilter = btn.dataset.filter;
-        render();
+        buildList();
+        updateEmptyState();
       });
     });
 
     clearCompletedBtn.addEventListener('click', handleClearCompleted);
   }
 
-  // ─── Add Task ───────────────────────────────────
+  // ─── Add Task ────────────────────────────────
   function handleAddTask(e) {
     e.preventDefault();
     const text = taskInput.value.trim();
@@ -120,45 +122,64 @@
       completed: false,
       createdAt: Date.now(),
     };
-
     tasks.unshift(task);
     saveTasks();
-    render();
+    // Only re-render the list when the new item is in the current filter.
+    const visible = taskMatchesFilter(task, currentFilter);
+    if (visible) {
+      const li = createTaskElement(task, /*entering*/ true);
+      taskList.prepend(li);
+    }
+    renderStats();
+    updateEmptyState();
 
     taskInput.value = '';
+    addBtn.disabled = true;
     taskInput.focus();
   }
 
-  // ─── Toggle Complete ────────────────────────────
+  // ─── Toggle Complete (in-place) ──────────────
   function toggleComplete(id) {
     const task = tasks.find(t => t.id === id);
-    if (task) {
-      task.completed = !task.completed;
-      saveTasks();
-      render();
+    if (!task) return;
+    task.completed = !task.completed;
+    saveTasks();
+
+    const li = taskList.querySelector(`[data-id="${id}"]`);
+    if (li) {
+      if (task.completed) li.classList.add('completed');
+      else                li.classList.remove('completed');
+      const cb = li.querySelector('input[type="checkbox"]');
+      if (cb) cb.checked = task.completed;
     }
+    renderStats();
+    updateEmptyState();
   }
 
-  // ─── Delete Task ────────────────────────────────
+  // ─── Delete Task (in-place) ──────────────────
   function deleteTask(id) {
-    const el = document.querySelector(`[data-id="${id}"]`);
-    if (el) {
-      el.classList.add('removing');
-      el.addEventListener('animationend', () => {
-        tasks = tasks.filter(t => t.id !== id);
-        saveTasks();
-        render();
-      });
-    }
+    const li = taskList.querySelector(`[data-id="${id}"]`);
+    if (!li) return;
+
+    li.classList.add('removing');
+    const cleanup = () => {
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasks();
+      li.remove();
+      renderStats();
+      updateEmptyState();
+    };
+    // 200ms matches CSS removing transition
+    setTimeout(cleanup, 200);
   }
 
-  // ─── Edit Task ──────────────────────────────────
+  // ─── Edit Task ───────────────────────────────
   function startEdit(id) {
     const task = tasks.find(t => t.id === id);
     if (!task || task.completed) return;
-
-    const el = document.querySelector(`[data-id="${id}"]`);
-    const textEl = el.querySelector('.task-text');
+    const li = taskList.querySelector(`[data-id="${id}"]`);
+    if (!li) return;
+    const textEl = li.querySelector('.task-text');
     const currentText = task.text;
 
     const input = document.createElement('input');
@@ -171,203 +192,194 @@
     input.focus();
     input.select();
 
-    function finishEdit() {
-      const newText = input.value.trim();
-      if (newText && newText !== currentText) {
-        task.text = newText;
-        saveTasks();
+    let done = false;
+    function finishEdit(commit) {
+      if (done) return;
+      done = true;
+      if (commit) {
+        const newText = input.value.trim();
+        if (newText && newText !== currentText) {
+          task.text = newText;
+          saveTasks();
+        }
       }
-      render();
+      buildList();
     }
-
-    input.addEventListener('blur', finishEdit);
+    input.addEventListener('blur', () => finishEdit(true));
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        input.blur();
-      }
-      if (e.key === 'Escape') {
-        input.value = currentText;
-        input.blur();
-      }
+      if (e.key === 'Enter')  { e.preventDefault(); input.blur(); }
+      if (e.key === 'Escape') { e.preventDefault(); finishEdit(false); }
     });
   }
 
-  // ─── Clear Completed ───────────────────────────
+  // ─── Clear Completed ─────────────────────────
   function handleClearCompleted() {
-    const completedEls = document.querySelectorAll('.task-item.completed');
-    if (completedEls.length === 0) {
-      tasks = tasks.filter(t => !t.completed);
-      saveTasks();
-      render();
-      return;
-    }
+    const completedIds = new Set(tasks.filter(t => t.completed).map(t => t.id));
+    if (completedIds.size === 0) return;
 
-    completedEls.forEach(el => el.classList.add('removing'));
-
+    // In-place remove each
+    const lis = taskList.querySelectorAll('.task-item.completed');
+    lis.forEach(li => li.classList.add('removing'));
     setTimeout(() => {
       tasks = tasks.filter(t => !t.completed);
       saveTasks();
-      render();
-    }, 300);
+      buildList();
+      renderStats();
+      updateEmptyState();
+    }, 200);
   }
 
-  // ─── Drag & Drop ───────────────────────────────
+  // ─── Drag & Drop ─────────────────────────────
   function handleDragStart(e, id) {
     draggedId = id;
     e.currentTarget.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
   }
-
   function handleDragEnd(e) {
     draggedId = null;
     e.currentTarget.classList.remove('dragging');
-    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    taskList.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
   }
-
   function handleDragOver(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     e.currentTarget.classList.add('drag-over');
   }
-
   function handleDragLeave(e) {
     e.currentTarget.classList.remove('drag-over');
   }
-
   function handleDrop(e, targetId) {
     e.preventDefault();
     e.currentTarget.classList.remove('drag-over');
-
     if (draggedId === targetId) return;
-
-    const draggedIndex = tasks.findIndex(t => t.id === draggedId);
-    const targetIndex = tasks.findIndex(t => t.id === targetId);
-
-    if (draggedIndex === -1 || targetIndex === -1) return;
-
-    const [draggedTask] = tasks.splice(draggedIndex, 1);
-    tasks.splice(targetIndex, 0, draggedTask);
-
+    const fromIdx = tasks.findIndex(t => t.id === draggedId);
+    const toIdx   = tasks.findIndex(t => t.id === targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = tasks.splice(fromIdx, 1);
+    tasks.splice(toIdx, 0, moved);
     saveTasks();
-    render();
+    buildList();
   }
 
-  // ─── Render ─────────────────────────────────────
-  function render() {
+  // ─── Build list (one full re-render) ─────────
+  function buildList() {
     const filtered = getFilteredTasks();
-    const totalActive = tasks.filter(t => !t.completed).length;
-    const totalCompleted = tasks.filter(t => t.completed).length;
-
-    // Stats
-    statsText.textContent = `${totalActive} task${totalActive !== 1 ? 's' : ''} remaining`;
-    clearCompletedBtn.classList.toggle('visible', totalCompleted > 0);
-
-    // Empty state
-    if (filtered.length === 0) {
-      taskList.innerHTML = '';
-      emptyState.classList.add('visible');
-      if (tasks.length > 0) {
-        emptyState.querySelector('.empty-title').textContent = 'No tasks here';
-        emptyState.querySelector('.empty-subtitle').textContent =
-          currentFilter === 'active'
-            ? 'All tasks are completed — nice work!'
-            : 'No completed tasks yet';
-      } else {
-        emptyState.querySelector('.empty-title').textContent = 'No tasks yet';
-        emptyState.querySelector('.empty-subtitle').textContent =
-          'Add your first task above to get started';
-      }
-      return;
-    }
-
-    emptyState.classList.remove('visible');
-
-    // Build task list
-    taskList.innerHTML = filtered
-      .map(
-        (task, i) => `
-      <li class="task-item ${task.completed ? 'completed' : ''}"
-          data-id="${task.id}"
-          draggable="true"
-          style="animation-delay: ${i * 0.04}s">
-        <span class="priority-dot ${task.priority}"></span>
-        <label class="task-checkbox">
-          <input type="checkbox" ${task.completed ? 'checked' : ''} aria-label="Toggle task completion" />
-          <span class="checkmark">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-        </label>
-        <span class="task-text">${escapeHtml(task.text)}</span>
-        <span class="task-time">${formatTime(task.createdAt)}</span>
-        <button class="delete-btn" aria-label="Delete task">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </li>`
-      )
-      .join('');
-
-    // Bind task events
-    taskList.querySelectorAll('.task-item').forEach(el => {
-      const id = el.dataset.id;
-
-      // Checkbox
-      el.querySelector('input[type="checkbox"]').addEventListener('change', () =>
-        toggleComplete(id)
-      );
-
-      // Delete
-      el.querySelector('.delete-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        deleteTask(id);
-      });
-
-      // Double-click to edit
-      el.querySelector('.task-text').addEventListener('dblclick', () => startEdit(id));
-
-      // Drag events
-      el.addEventListener('dragstart', (e) => handleDragStart(e, id));
-      el.addEventListener('dragend', handleDragEnd);
-      el.addEventListener('dragover', handleDragOver);
-      el.addEventListener('dragleave', handleDragLeave);
-      el.addEventListener('drop', (e) => handleDrop(e, id));
+    taskList.innerHTML = '';
+    filtered.forEach(task => {
+      taskList.appendChild(createTaskElement(task, false));
     });
   }
 
-  // ─── Filters ────────────────────────────────────
+  function createTaskElement(task, entering) {
+    const li = document.createElement('li');
+    li.className = 'task-item' + (task.completed ? ' completed' : '')
+                  + (entering ? ' entering' : '');
+    li.dataset.id = task.id;
+    li.draggable = true;
+
+    const dot = document.createElement('span');
+    dot.className = 'priority-dot ' + task.priority;
+
+    const label = document.createElement('label');
+    label.className = 'task-checkbox';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = !!task.completed;
+    cb.setAttribute('aria-label', 'Toggle task completion');
+    label.appendChild(cb);
+
+    const text = document.createElement('span');
+    text.className = 'task-text';
+    text.textContent = task.text;
+
+    const time = document.createElement('span');
+    time.className = 'task-time';
+    time.textContent = formatTime(task.createdAt);
+
+    const del = document.createElement('button');
+    del.className = 'delete-btn';
+    del.setAttribute('aria-label', 'Delete task');
+    del.innerHTML =
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" ' +
+      'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+      'stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/>' +
+      '<line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+    li.append(dot, label, text, time, del);
+
+    // events
+    cb.addEventListener('change', () => toggleComplete(task.id));
+    del.addEventListener('click', (e) => { e.stopPropagation(); deleteTask(task.id); });
+    text.addEventListener('dblclick', () => startEdit(task.id));
+    li.addEventListener('dragstart', (e) => handleDragStart(e, task.id));
+    li.addEventListener('dragend', handleDragEnd);
+    li.addEventListener('dragover', handleDragOver);
+    li.addEventListener('dragleave', handleDragLeave);
+    li.addEventListener('drop', (e) => handleDrop(e, task.id));
+
+    return li;
+  }
+
+  // ─── Stats & empty state (independent updates) ─
+  function renderStats() {
+    const active    = tasks.filter(t => !t.completed).length;
+    const completed = tasks.filter(t => t.completed).length;
+    statsText.textContent =
+      `${active} task${active !== 1 ? 's' : ''} remaining`
+      + (completed > 0 ? ` · ${completed} done` : '');
+    clearCompletedBtn.classList.toggle('visible', completed > 0);
+  }
+
+  function updateEmptyState() {
+    const visible = getFilteredTasks();
+    if (visible.length > 0) {
+      emptyState.classList.remove('visible');
+      return;
+    }
+    emptyState.classList.add('visible');
+    if (tasks.length === 0) {
+      emptyTitleEl.textContent = 'No tasks yet';
+      emptySubtitleEl.textContent = 'Add your first task above to get started';
+    } else if (currentFilter === 'active') {
+      emptyTitleEl.textContent = 'Nothing active';
+      emptySubtitleEl.textContent = 'All tasks are completed — nice work.';
+    } else if (currentFilter === 'completed') {
+      emptyTitleEl.textContent = 'Nothing completed';
+      emptySubtitleEl.textContent = 'Check off a task to see it here.';
+    } else {
+      emptyTitleEl.textContent = 'No tasks';
+      emptySubtitleEl.textContent = '';
+    }
+  }
+
+  // ─── Filter helpers ──────────────────────────
   function getFilteredTasks() {
-    if (currentFilter === 'active') return tasks.filter(t => !t.completed);
+    if (currentFilter === 'active')    return tasks.filter(t => !t.completed);
     if (currentFilter === 'completed') return tasks.filter(t => t.completed);
     return tasks;
   }
+  function taskMatchesFilter(task, filter) {
+    if (filter === 'active')    return !task.completed;
+    if (filter === 'completed') return task.completed;
+    return true;
+  }
 
-  // ─── Helpers ────────────────────────────────────
+  // ─── Utilities ───────────────────────────────
   function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
   function formatTime(timestamp) {
     const date = new Date(timestamp);
-    const now = new Date();
+    const now  = new Date();
     const diff = now - date;
-
-    if (diff < 60000) return 'just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-
-    if (date.toDateString() === now.toDateString()) {
+    if (diff < 60_000)        return 'just now';
+    if (diff < 3_600_000)     return Math.floor(diff / 60_000) + 'm ago';
+    if (diff < 86_400_000)    return Math.floor(diff / 3_600_000) + 'h ago';
+    if (date.toDateString() === now.toDateString())
       return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    }
-
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
-  // ─── Boot ───────────────────────────────────────
+  // ─── Boot ────────────────────────────────────
   init();
 })();
