@@ -24,14 +24,6 @@
     "order": 2
   },
   {
-    "id": "brownie-04",
-    "text": "200 g granulated sugar",
-    "priority": "medium",
-    "completed": false,
-    "createdAt": 1718340000003,
-    "order": 3
-  },
-  {
     "id": "brownie-05",
     "text": "100 g all-purpose flour",
     "priority": "medium",
