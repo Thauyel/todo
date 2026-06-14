@@ -35,7 +35,7 @@
     "id": "brownie-05",
     "text": "100 g all-purpose flour",
     "priority": "medium",
-    "completed": false,
+    "completed": true,
     "createdAt": 1718340000004,
     "order": 4
   },
@@ -43,7 +43,7 @@
     "id": "brownie-06",
     "text": "30 g cocoa powder",
     "priority": "medium",
-    "completed": false,
+    "completed": true,
     "createdAt": 1718340000005,
     "order": 5
   },
