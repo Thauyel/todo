@@ -27,7 +27,7 @@
     "id": "brownie-04",
     "text": "200 g granulated sugar",
     "priority": "medium",
-    "completed": false,
+    "completed": true,
     "createdAt": 1718340000003,
     "order": 3
   },
