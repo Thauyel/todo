@@ -38,21 +38,21 @@
     "id": "mtsmp6qtaw262i",
     "text": "k\u00f6ri",
     "priority": "medium",
-    "completed": false,
+    "completed": true,
     "createdAt": 1788869477477
   },
   {
     "id": "mtsmp5y5w85ubr",
     "text": "ac\u0131 biber",
     "priority": "medium",
-    "completed": false,
+    "completed": true,
     "createdAt": 1788869476445
   },
   {
     "id": "mtsmoyvb217sbr",
     "text": "karabiber",
     "priority": "medium",
-    "completed": false,
+    "completed": true,
     "createdAt": 1788869467271
   },
   {
@@ -66,7 +66,7 @@
     "id": "mtsmmtvcynv8av",
     "text": "tuvalet ka\u011f\u0131d\u0131",
     "priority": "medium",
-    "completed": false,
+    "completed": true,
     "createdAt": 1788869367480
   },
   {
