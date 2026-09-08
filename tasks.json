@@ -10,21 +10,21 @@
     "id": "mtsmq534vxlrf3",
     "text": "\u015farap",
     "priority": "medium",
-    "completed": false,
+    "completed": true,
     "createdAt": 1788869521984
   },
   {
     "id": "mtsmpy7lqx07eh",
     "text": "kokopops",
     "priority": "medium",
-    "completed": false,
+    "completed": true,
     "createdAt": 1788869513073
   },
   {
     "id": "mtsmpwdrdrwqdk",
     "text": "s\u00fct 2x",
     "priority": "medium",
-    "completed": false,
+    "completed": true,
     "createdAt": 1788869510703
   },
   {
