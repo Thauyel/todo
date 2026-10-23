@@ -1,1 +1,15 @@
-[]
+{
+ "version": 2,
+ "rev": 0,
+ "lists": [
+  {
+   "id": "todo",
+   "name": "todo"
+  },
+  {
+   "id": "groceries",
+   "name": "groceries"
+  }
+ ],
+ "tasks": []
+}

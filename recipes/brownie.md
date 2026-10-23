@@ -1,4 +1,13 @@
-# Fudgy One-Bowl Brownies
+---
+title: Fudgy One-Bowl Brownies
+icon: dessert
+country: United States
+city: Chicago
+flag: us
+summary: Dense, fudgy, crackly-topped brownies from a single bowl — no mixer, twenty-five minutes start to finish. Born in late-nineteenth-century American hotel kitchens and perfected by home bakers who wanted chocolate cake you could eat with your hands.
+hero: https://commons.wikimedia.org/wiki/Special:FilePath/Chocolate-brownie-hachatw.jpg?width=1280
+tag: Fudgy, crackly-top, one bowl
+---
 
 Quick, dense, crackly-top brownies. One bowl, no mixer. ~25 min total.
 Makes a 9x9" (23x23cm) pan, about 12 squares.
